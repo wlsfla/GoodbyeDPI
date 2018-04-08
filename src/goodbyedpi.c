@@ -92,6 +92,7 @@ WINSOCK_API_LINKAGE INT WSAAPI inet_pton(INT Family, LPCSTR pStringBuf, PVOID pA
             "WARNING: HTTP fragment size is already set to %d, not changing.\n", \
             http_fragment_size \
         ); \
+		fflush(stdout); \
     } \
 } while (0)
 
@@ -140,10 +141,15 @@ static void add_filter_str(int proto, int port) {
     char *new_filter = malloc(new_filter_size);
 
     strcpy(new_filter, current_filter);
-    if (proto == IPPROTO_UDP)
+    if (proto == IPPROTO_UDP){
         sprintf(&(new_filter[strlen(new_filter)]), udp, port, port);
+		fflush(stdout);
+	}
     else
+	{
         sprintf(&(new_filter[strlen(new_filter)]), tcp, port, port);
+		fflush(stdout);
+	}
 
     filter_string = new_filter;
     free(current_filter);
@@ -155,6 +161,7 @@ static void add_ip_id_str(int id) {
     char *addfilter = malloc(strlen(ipid) + 16);
 
     sprintf(addfilter, ipid, id);
+	fflush(stdout);
 
     newstr = repl_str(filter_string, IPID_TEMPLATE, addfilter);
     free(filter_string);
@@ -201,8 +208,9 @@ static HANDLE init(char *filter, UINT64 flags) {
                   NULL, errorcode, MAKELANGID(LANG_ENGLISH, SUBLANG_DEFAULT),
                   (LPTSTR)&errormessage, 0, NULL);
     printf("Error opening filter: %s", errormessage);
+	fflush(stdout);
     LocalFree(errormessage);
-    if (errorcode == 577)
+    if (errorcode == 577){
         printf("Windows Server 2016 systems must have secure boot disabled to be "
                "able to load WinDivert driver.\n"
                "Windows 7 systems must be up-to-date or at least have KB3033929 installed.\n"
@@ -212,6 +220,8 @@ static HANDLE init(char *filter, UINT64 flags) {
                "Most probably, you don't have security patches installed and anyone in you LAN or "
                "public Wi-Fi network can get full access to your computer (MS17-010 and others).\n"
                "You should install updates IMMEDIATELY.\n");
+	    fflush(stdout);
+	}
     return NULL;
 }
 
@@ -396,6 +406,7 @@ int main(int argc, char *argv[]) {
         "GoodbyeDPI: Passive DPI blocker and Active DPI circumvention utility\n"
         "https://github.com/ValdikSS/GoodbyeDPI\n\n"
     );
+	fflush(stdout);
 
     if (argc == 1) {
         /* enable mode -1 by default */
@@ -471,6 +482,7 @@ int main(int argc, char *argv[]) {
                 i = atoi(optarg);
                 if (i <= 0 || i > 65535) {
                     printf("Port parameter error!\n");
+					fflush(stdout);
                     exit(EXIT_FAILURE);
                 }
                 if (i != 80 && i != 443)
@@ -482,6 +494,7 @@ int main(int argc, char *argv[]) {
                 i = atoi(optarg);
                 if (i < 0 || i > 65535) {
                     printf("IP ID parameter error!\n");
+					fflush(stdout);
                     exit(EXIT_FAILURE);
                 }
                 add_ip_id_str(i);
@@ -560,6 +573,7 @@ int main(int argc, char *argv[]) {
                 do_blacklist = 1;
                 if (!blackwhitelist_load_list(optarg)) {
                     printf("Can't load blacklist from file!\n");
+					fflush(stdout);
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -605,14 +619,17 @@ int main(int argc, char *argv[]) {
            do_http_allports, do_fragment_http_persistent_nowait, do_dnsv4_redirect,
            do_dnsv6_redirect
           );
+	fflush(stdout);
 
     if (do_fragment_http && http_fragment_size > 2) {
         printf("WARNING: HTTP fragmentation values > 2 are not fully compatible "
                "with other options. Please use values <= 2 or disable HTTP fragmentation "
                "completely.\n");
+	    fflush(stdout);
     }
 
     printf("\nOpening filter\n");
+	fflush(stdout);
     finalize_filter_strings();
     filter_num = 0;
 
@@ -641,6 +658,7 @@ int main(int argc, char *argv[]) {
     }
 
     printf("Filter activated!\n");
+	fflush(stdout);
     signal(SIGINT, sigint_handler);
 
     while (1) {
@@ -929,6 +947,7 @@ int main(int argc, char *argv[]) {
                         if (do_dns_verb && !should_reinject) {
                             printf("[DNS] Error handling incoming packet: srcport = %hu, dstport = %hu\n",
                                ntohs(ppUdpHdr->SrcPort), ntohs(ppUdpHdr->DstPort));
+							fflush(stdout);
                         }
                     }
                 }
@@ -961,6 +980,7 @@ int main(int argc, char *argv[]) {
                         if (do_dns_verb && !should_reinject) {
                             printf("[DNS] Error handling outgoing packet: srcport = %hu, dstport = %hu\n",
                                ntohs(ppUdpHdr->SrcPort), ntohs(ppUdpHdr->DstPort));
+							fflush(stdout);
                         }
                     }
                 }
@@ -981,6 +1001,7 @@ int main(int argc, char *argv[]) {
         else {
             // error, ignore
             printf("Error receiving packet!\n");
+			fflush(stdout);
             break;
         }
     }

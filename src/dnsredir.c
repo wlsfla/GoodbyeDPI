@@ -50,12 +50,16 @@ void flush_dns_cache() {
     if (dnsapi == NULL)
     {
         printf("Can't load dnsapi.dll to flush DNS cache!\n");
+		fflush(stdout);
         exit(EXIT_FAILURE);
     }
 
     DnsFlushResolverCache = (void*)GetProcAddress(dnsapi, "DnsFlushResolverCache");
     if (DnsFlushResolverCache == NULL || !DnsFlushResolverCache())
+	{
         printf("Can't flush DNS cache!");
+		fflush(stdout);
+	}
     FreeLibrary(dnsapi);
 }
 
